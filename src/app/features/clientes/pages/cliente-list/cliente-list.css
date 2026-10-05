@@ -1,0 +1,70 @@
+.subtitulo {
+  margin: -8px 0 0;
+  color: #64748b;
+}
+
+.controles {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.buscador {
+  max-width: 380px;
+}
+
+.tamanio {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #475569;
+}
+
+.select {
+  width: auto;
+  min-width: 72px;
+}
+
+.tabla-contenedor {
+  overflow-x: auto;
+}
+
+.orden {
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-weight: inherit;
+  padding: 0;
+  cursor: pointer;
+}
+
+.acciones {
+  display: flex;
+  gap: 8px;
+  white-space: nowrap;
+}
+
+.vacio {
+  text-align: center;
+  color: #6b7280;
+  padding: 24px;
+}
+
+.paginacion {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  margin-top: 16px;
+  color: #475569;
+  flex-wrap: wrap;
+}
+
+.paginacion-botones {
+  display: flex;
+  gap: 8px;
+}
