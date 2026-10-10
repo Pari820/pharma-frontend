@@ -21,6 +21,7 @@ export class CategoriaList implements OnInit {
 
   protected readonly filtradas = computed(() => {
     const texto = this.filtro().trim().toLowerCase();
+
     return this.categorias().filter(c =>
       c.nombre.toLowerCase().includes(texto)
     );
