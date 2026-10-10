@@ -5,7 +5,19 @@ export interface MenuItem {
 }
 
 export const MENU: MenuItem[] = [
-  { etiqueta: 'Inicio', ruta: '/inicio', icono: '🏠' },
-  { etiqueta: 'Categorías', ruta: '/categorias', icono: '🗂️' },
-  // Actividad autónoma: { etiqueta: 'Clientes', ruta: '/clientes', icono: '👥' },
+  {
+    etiqueta: 'Inicio',
+    ruta: '/inicio',
+    icono: '🏠'
+  },
+  {
+    etiqueta: 'Categorías',
+    ruta: '/categorias',
+    icono: '📁'
+  },
+  {
+    etiqueta: 'Productos',
+    ruta: '/productos',
+    icono: '💊'
+  }
 ];

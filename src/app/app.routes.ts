@@ -6,28 +6,36 @@ export const routes: Routes = [
     path: '',
     component: MainLayout,
     children: [
-      { path: '', pathMatch: 'full', redirectTo: 'inicio' },
+      {
+        path: '',
+        pathMatch: 'full',
+        redirectTo: 'inicio'
+      },
       {
         path: 'inicio',
-        title: 'Inicio',
         loadComponent: () =>
           import('./features/inicio/inicio').then(m => m.Inicio),
+        title: 'Inicio'
       },
       {
         path: 'categorias',
         loadChildren: () =>
-          import('./features/categorias/categorias.routes').then(
-            m => m.CATEGORIAS_ROUTES
-          ),
+          import('./features/categorias/categorias.routes')
+            .then(m => m.CATEGORIAS_ROUTES)
       },
-    ],
+      {
+        path: 'productos',
+        loadChildren: () =>
+          import('./features/productos/productos.routes')
+            .then(m => m.PRODUCTOS_ROUTES)
+      }
+    ]
   },
   {
     path: '**',
-    title: 'Página no encontrada',
     loadComponent: () =>
-      import('./shared/pages/no-encontrado/no-encontrado').then(
-        m => m.NoEncontrado
-      ),
-  },
+      import('./shared/pages/no-encontrado/no-encontrado')
+        .then(m => m.NoEncontrado),
+    title: 'Página no encontrada'
+  }
 ];
