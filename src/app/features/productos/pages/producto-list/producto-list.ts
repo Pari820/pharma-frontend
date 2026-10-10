@@ -1,16 +1,25 @@
 import { CurrencyPipe } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, computed, inject, OnInit, signal } from '@angular/core';
+import {
+  Component,
+  computed,
+  inject,
+  input,
+  OnInit,
+  signal
+} from '@angular/core';
 import { RouterLink } from '@angular/router';
 
 import { PaginaResponse } from '../../../../core/models/pagina-response';
 import { Categoria } from '../../../categorias/models/categoria.model';
 import { CategoriaService } from '../../../categorias/services/categoria-service';
+
 import {
   Direccion,
   OrdenProducto,
   Producto
 } from '../../models/producto.model';
+
 import { ProductoService } from '../../services/producto-service';
 
 @Component({
@@ -24,16 +33,32 @@ export class ProductoList implements OnInit {
   private readonly productoService = inject(ProductoService);
   private readonly categoriaService = inject(CategoriaService);
 
+  /*
+   * Recibe:
+   * /productos?categoriaId=6
+   *
+   * Gracias a withComponentInputBinding(),
+   * Angular entrega el query param como input.
+   */
+  readonly categoriaId = input<string>();
+
   protected readonly pagina = signal(0);
   protected readonly tamanio = signal(10);
-  protected readonly ordenarPor = signal<OrdenProducto>('nombre');
-  protected readonly direccion = signal<Direccion>('asc');
+
+  protected readonly ordenarPor =
+    signal<OrdenProducto>('nombre');
+
+  protected readonly direccion =
+    signal<Direccion>('asc');
 
   protected readonly resultado =
     signal<PaginaResponse<Producto> | null>(null);
 
-  protected readonly categorias = signal<Categoria[]>([]);
-  protected readonly categoriaFiltro = signal<number | null>(null);
+  protected readonly categorias =
+    signal<Categoria[]>([]);
+
+  protected readonly categoriaFiltro =
+    signal<number | null>(null);
 
   protected readonly cargando = signal(false);
   protected readonly error = signal<string | null>(null);
@@ -44,10 +69,46 @@ export class ProductoList implements OnInit {
 
     return filtro === null
       ? lista
-      : lista.filter(producto => producto.categoriaId === filtro);
+      : lista.filter(
+          producto => producto.categoriaId === filtro
+        );
   });
 
+  protected readonly categoriaSeleccionada = computed(() => {
+    const id = this.categoriaFiltro();
+
+    if (id === null) {
+      return null;
+    }
+
+    return this.categorias().find(
+      categoria => categoria.id === id
+    ) ?? null;
+  });
+
+  protected readonly vieneDesdeCategoria = computed(() =>
+    !!this.categoriaId()
+  );
+
   ngOnInit(): void {
+
+    /*
+     * Si llega categoriaId desde Categorías,
+     * dejamos seleccionado el filtro y pedimos
+     * hasta 100 registros.
+     */
+    const categoriaIdRecibida = this.categoriaId();
+
+    if (categoriaIdRecibida) {
+      const id = Number(categoriaIdRecibida);
+
+      if (!Number.isNaN(id)) {
+        this.categoriaFiltro.set(id);
+        this.tamanio.set(100);
+        this.pagina.set(0);
+      }
+    }
+
     this.categoriaService.listar().subscribe({
       next: datos => {
         this.categorias.set(datos);
@@ -98,11 +159,17 @@ export class ProductoList implements OnInit {
   }
 
   ordenar(campo: OrdenProducto): void {
+
     if (this.ordenarPor() === campo) {
+
       this.direccion.update(direccion =>
-        direccion === 'asc' ? 'desc' : 'asc'
+        direccion === 'asc'
+          ? 'desc'
+          : 'asc'
       );
+
     } else {
+
       this.ordenarPor.set(campo);
       this.direccion.set('asc');
     }
@@ -111,12 +178,14 @@ export class ProductoList implements OnInit {
   }
 
   filtrarPorCategoria(valor: string): void {
+
     this.categoriaFiltro.set(
       valor ? Number(valor) : null
     );
   }
 
   darDeBaja(producto: Producto): void {
+
     const confirmar = confirm(
       `¿Dar de baja el producto "${producto.nombre}"?`
     );
@@ -125,41 +194,54 @@ export class ProductoList implements OnInit {
       return;
     }
 
-    this.productoService.darDeBaja(producto.id).subscribe({
-      next: () => {
-        const actual = this.resultado();
+    this.productoService
+      .darDeBaja(producto.id)
+      .subscribe({
 
-        if (!actual) {
-          return;
+        next: () => {
+
+          const actual = this.resultado();
+
+          if (!actual) {
+            return;
+          }
+
+          const contenidoActualizado =
+            actual.contenido.map(p =>
+              p.id === producto.id
+                ? {
+                    ...p,
+                    estado: false
+                  }
+                : p
+            );
+
+          this.resultado.set({
+            ...actual,
+            contenido: contenidoActualizado
+          });
+        },
+
+        error: (err: HttpErrorResponse) => {
+          this.error.set(
+            this.mensajeError(err)
+          );
         }
-
-        const contenidoActualizado = actual.contenido.map(p =>
-          p.id === producto.id
-            ? {
-                ...p,
-                estado: false
-              }
-            : p
-        );
-
-        this.resultado.set({
-          ...actual,
-          contenido: contenidoActualizado
-        });
-      },
-      error: (err: HttpErrorResponse) => {
-        this.error.set(this.mensajeError(err));
-      }
-    });
+      });
   }
 
-  private mensajeError(err: HttpErrorResponse): string {
+  private mensajeError(
+    err: HttpErrorResponse
+  ): string {
+
     return (
       err.error?.mensaje ??
       err.error?.message ??
-      (typeof err.error === 'string'
-        ? err.error
-        : null) ??
+      (
+        typeof err.error === 'string'
+          ? err.error
+          : null
+      ) ??
       `Error ${err.status}: no se pudo completar la operación.`
     );
   }

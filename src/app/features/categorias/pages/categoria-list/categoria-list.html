@@ -1,12 +1,15 @@
 <section class="page">
   <header class="page-header">
     <h2>Categorías</h2>
-    <a routerLink="nuevo" class="btn btn-primary">+ Nueva categoría</a>
+
+    <a routerLink="nuevo" class="btn btn-primary">
+      + Nueva categoría
+    </a>
   </header>
 
   <input
     class="input buscador"
-    placeholder="Buscar por nombre…"
+    placeholder="Buscar por nombre..."
     [value]="filtro()"
     (input)="filtro.set($any($event.target).value)"
   />
@@ -16,7 +19,7 @@
   }
 
   @if (cargando()) {
-    <p>Cargando categorías…</p>
+    <p>Cargando categorías...</p>
   } @else {
     <table class="tabla">
       <thead>
@@ -33,15 +36,37 @@
         @for (c of filtradas(); track c.id) {
           <tr>
             <td>{{ c.id }}</td>
+
             <td>{{ c.nombre }}</td>
+
             <td>{{ c.descripcion ?? '—' }}</td>
+
             <td>
-              <span class="badge" [class.inactivo]="!c.estado">
+              <span
+                class="badge"
+                [class.inactivo]="!c.estado"
+              >
                 {{ c.estado ? 'Activo' : 'Inactivo' }}
               </span>
             </td>
+
             <td class="acciones">
-              <a [routerLink]="[c.id, 'editar']" class="btn">Editar</a>
+
+              <a
+                [routerLink]="['/productos']"
+                [queryParams]="{ categoriaId: c.id }"
+                class="btn"
+              >
+                Ver productos
+              </a>
+
+              <a
+                [routerLink]="[c.id, 'editar']"
+                class="btn"
+              >
+                Editar
+              </a>
+
               <button
                 type="button"
                 class="btn btn-peligro"
@@ -49,6 +74,7 @@
               >
                 Eliminar
               </button>
+
             </td>
           </tr>
         } @empty {
