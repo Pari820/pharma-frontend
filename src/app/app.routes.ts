@@ -6,7 +6,11 @@ export const routes: Routes = [
     path: '',
     component: MainLayout,
     children: [
-      { path: '', pathMatch: 'full', redirectTo: 'inicio' },
+      {
+        path: '',
+        pathMatch: 'full',
+        redirectTo: 'inicio',
+      },
       {
         path: 'inicio',
         title: 'Inicio',
@@ -18,6 +22,20 @@ export const routes: Routes = [
         loadChildren: () =>
           import('./features/categorias/categorias.routes').then(
             m => m.CATEGORIAS_ROUTES
+          ),
+      },
+      {
+        path: 'clientes',
+        loadChildren: () =>
+          import('./features/clientes/clientes.routes').then(
+            m => m.CLIENTES_ROUTES
+          ),
+      },
+      {
+        path: 'ventas',
+        loadChildren: () =>
+          import('./features/ventas/ventas.routes').then(
+            m => m.VENTAS_ROUTES
           ),
       },
     ],

@@ -103,3 +103,52 @@ h2 {
   background: #f1f5f9;
   color: #64748b;
 }
+
+/* ---------- Impresión ---------- */
+.solo-impresion {
+  display: none;
+}
+
+@media print {
+  @page {
+    size: A4;
+    margin: 12mm;
+  }
+
+  * {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  body {
+    background: #fff;
+  }
+
+  .no-imprimir {
+    display: none !important;
+  }
+
+  .solo-impresion {
+    display: block;
+  }
+
+  .card {
+    box-shadow: none;
+    border-radius: 0;
+    padding: 0;
+  }
+
+  .tabla {
+    border-radius: 0;
+  }
+
+  .tabla th {
+    background: #fff;
+    color: #000;
+    border-bottom: 2px solid #0f2e5c;
+  }
+
+  .tabla tr {
+    break-inside: avoid;
+  }
+}
