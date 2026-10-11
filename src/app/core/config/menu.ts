@@ -23,11 +23,16 @@ export const MENU: MenuItem[] = [
   {
     etiqueta: 'Clientes',
     ruta: '/clientes',
-    icono: '👤'
+    icono: '👥'
   },
   {
     etiqueta: 'Ventas',
     ruta: '/ventas',
     icono: '🧾'
+  },
+  {
+    etiqueta: 'Reportes',
+    ruta: '/reportes/ventas-por-categoria',
+    icono: '📊'
   }
 ];
