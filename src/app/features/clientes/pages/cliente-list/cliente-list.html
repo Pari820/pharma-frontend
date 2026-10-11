@@ -1,0 +1,123 @@
+<section class="page">
+  <header class="page-header">
+    <div>
+      <h2>Clientes</h2>
+      <p class="subtitulo">Consulta, registra, edita y da de baja clientes.</p>
+    </div>
+    <a routerLink="nuevo" class="btn btn-primary">+ Nuevo cliente</a>
+  </header>
+
+  <div class="controles">
+    <input
+      class="input buscador"
+      placeholder="Buscar por DNI, nombre o apellido…"
+      [value]="filtro()"
+      (input)="filtro.set($any($event.target).value)"
+    />
+
+    <label class="tamanio">
+      Mostrar
+      <select class="input select" [value]="tamanio()" (change)="cambiarTamanio($event)">
+        <option value="5">5</option>
+        <option value="10">10</option>
+        <option value="20">20</option>
+      </select>
+      por página
+    </label>
+  </div>
+
+  @if (error()) {
+    <div class="alerta">{{ error() }}</div>
+  }
+
+  @if (cargando()) {
+    <p>Cargando clientes…</p>
+  } @else {
+    <div class="tabla-contenedor">
+      <table class="tabla">
+        <thead>
+          <tr>
+            <th>
+              <button type="button" class="orden" (click)="ordenar('dni')">
+                DNI{{ indicadorOrden('dni') }}
+              </button>
+            </th>
+            <th>
+              <button type="button" class="orden" (click)="ordenar('apellidos')">
+                Apellidos y nombres{{ indicadorOrden('apellidos') }}
+              </button>
+            </th>
+            <th>Correo</th>
+            <th>Teléfono</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          @for (cliente of clientesFiltrados(); track cliente.id) {
+            <tr>
+              <td>{{ cliente.dni }}</td>
+              <td>{{ cliente.apellidos }}, {{ cliente.nombres }}</td>
+              <td>{{ cliente.email }}</td>
+              <td>{{ cliente.telefono ?? '—' }}</td>
+              <td>
+                <span class="badge" [class.inactivo]="!cliente.estado">
+                  {{ cliente.estado ? 'Activo' : 'Inactivo' }}
+                </span>
+              </td>
+              <td class="acciones">
+                <a [routerLink]="[cliente.id, 'editar']" class="btn">Editar</a>
+                <button
+                  type="button"
+                  class="btn btn-peligro"
+                  (click)="darDeBaja(cliente)"
+                >
+                  Dar de baja
+                </button>
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="6" class="vacio">
+                @if (filtro().trim()) {
+                  No hay coincidencias en la página actual.
+                } @else {
+                  No hay clientes registrados.
+                }
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    @if (pagina(); as p) {
+      <footer class="paginacion">
+        <span>
+          Página {{ p.totalPaginas === 0 ? 0 : p.pagina + 1 }} de {{ p.totalPaginas }}
+          · {{ p.totalElementos }} clientes
+        </span>
+
+        <div class="paginacion-botones">
+          <button
+            type="button"
+            class="btn"
+            [disabled]="p.pagina === 0"
+            (click)="anterior()"
+          >
+            Anterior
+          </button>
+          <button
+            type="button"
+            class="btn"
+            [disabled]="p.ultima || p.totalPaginas === 0"
+            (click)="siguiente()"
+          >
+            Siguiente
+          </button>
+        </div>
+      </footer>
+    }
+  }
+</section>

@@ -3,9 +3,16 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { map, Observable } from 'rxjs';
 import { environment } from '../../../../environments/environment';
 import { PaginaResponse } from '../../../core/models/pagina-response';
-import { Direccion, OrdenProducto, Producto, ProductoRequest } from '../models/producto.model';
+import {
+  Direccion,
+  OrdenProducto,
+  Producto,
+  ProductoRequest
+} from '../models/producto.model';
 
-@Injectable({ providedIn: 'root' })
+@Injectable({
+  providedIn: 'root'
+})
 export class ProductoService {
   private readonly http = inject(HttpClient);
   private readonly url = `${environment.apiUrl}/productos`;
@@ -22,8 +29,6 @@ export class ProductoService {
       .set('ordenarPor', ordenarPor)
       .set('direccion', direccion);
 
-    // Soporta tanto el backend de la guía (paginado)
-    // como el backend que devuelve un arreglo directo.
     return this.http
       .get<PaginaResponse<Producto> | Producto[]>(this.url, { params })
       .pipe(
@@ -37,8 +42,11 @@ export class ProductoService {
             const bv = b[ordenarPor];
 
             if (typeof av === 'string' && typeof bv === 'string') {
-              return av.localeCompare(bv, 'es', { sensitivity: 'base' });
+              return av.localeCompare(bv, 'es', {
+                sensitivity: 'base'
+              });
             }
+
             return Number(av) - Number(bv);
           });
 
@@ -47,9 +55,16 @@ export class ProductoService {
           }
 
           const totalElementos = ordenados.length;
-          const totalPaginas = Math.max(1, Math.ceil(totalElementos / tamanio));
+          const totalPaginas = Math.max(
+            1,
+            Math.ceil(totalElementos / tamanio)
+          );
+
           const inicio = pagina * tamanio;
-          const contenido = ordenados.slice(inicio, inicio + tamanio);
+          const contenido = ordenados.slice(
+            inicio,
+            inicio + tamanio
+          );
 
           return {
             contenido,
@@ -71,8 +86,14 @@ export class ProductoService {
     return this.http.post<Producto>(this.url, dto);
   }
 
-  actualizar(id: number, dto: ProductoRequest): Observable<Producto> {
-    return this.http.put<Producto>(`${this.url}/${id}`, dto);
+  actualizar(
+    id: number,
+    dto: ProductoRequest
+  ): Observable<Producto> {
+    return this.http.put<Producto>(
+      `${this.url}/${id}`,
+      dto
+    );
   }
 
   darDeBaja(id: number): Observable<void> {

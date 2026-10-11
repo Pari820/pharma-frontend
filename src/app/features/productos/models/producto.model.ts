@@ -18,5 +18,7 @@ export interface ProductoRequest {
   categoriaId: number;
 }
 
+/** Campos que el backend acepta en ordenarPor. */
 export type OrdenProducto = 'id' | 'nombre' | 'precio' | 'stock';
+
 export type Direccion = 'asc' | 'desc';
