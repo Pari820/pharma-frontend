@@ -1,0 +1,80 @@
+{
+  "info": {
+    "_postman_id": "2f52b1af-9344-4a80-bff2-4a38af1e0dd2",
+    "name": "PharmaSoft - S9 Ventas",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "58348299",
+    "_collection_link": "https://go.postman.co/collection/58348299-2f52b1af-9344-4a80-bff2-4a38af1e0dd2?source=collection_link"
+  },
+  "item": [
+    {
+      "name": "V-05 — producto repetido en dos líneas",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"clienteId\": 4,\r\n  \"detalles\": [\r\n    {\r\n      \"productoId\": 26,\r\n      \"cantidad\": 1\r\n    },\r\n    {\r\n      \"productoId\": 26,\r\n      \"cantidad\": 1\r\n    }\r\n  ]\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/ventas",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "ventas"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "New Request",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": ""
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "M-02 — venta para cliente inactivo",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"clienteId\": 7,\r\n  \"detalles\": [\r\n    {\r\n      \"productoId\": 26,\r\n      \"cantidad\": 1\r\n    }\r\n  ]\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/ventas",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "ventas"
+          ]
+        }
+      },
+      "response": []
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": ""
+    }
+  ]
+}
