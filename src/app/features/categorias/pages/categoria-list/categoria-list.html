@@ -1,9 +1,19 @@
+
 <section class="page">
+
   <header class="page-header">
     <h2>Categorías</h2>
-    <a routerLink="nuevo" class="btn btn-primary">+ Nueva categoría</a>
+
+    <a
+      *appSiPermiso="'CATALOGO_ESCRIBIR'"
+      routerLink="nuevo"
+      class="btn btn-primary"
+    >
+      + Nueva categoría
+    </a>
   </header>
 
+  <!-- Buscador de categorías -->
   <input
     class="input buscador"
     placeholder="Buscar por nombre…"
@@ -12,36 +22,64 @@
   />
 
   @if (error()) {
-    <div class="alerta">{{ error() }}</div>
+    <div class="alerta">
+      {{ error() }}
+    </div>
   }
 
   @if (cargando()) {
     <p>Cargando categorías…</p>
   } @else {
+
     <table class="tabla">
+
       <thead>
         <tr>
           <th>ID</th>
           <th>Nombre</th>
           <th>Descripción</th>
           <th>Estado</th>
-          <th>Acciones</th>
+
+          <th *appSiPermiso="'CATALOGO_ESCRIBIR'">
+            Acciones
+          </th>
         </tr>
       </thead>
 
       <tbody>
         @for (c of filtradas(); track c.id) {
+
           <tr>
             <td>{{ c.id }}</td>
+
             <td>{{ c.nombre }}</td>
-            <td>{{ c.descripcion ?? '—' }}</td>
+
             <td>
-              <span class="badge" [class.inactivo]="!c.estado">
+              {{ c.descripcion ?? '—' }}
+            </td>
+
+            <td>
+              <span
+                class="badge"
+                [class.inactivo]="!c.estado"
+              >
                 {{ c.estado ? 'Activo' : 'Inactivo' }}
               </span>
             </td>
-            <td class="acciones">
-              <a [routerLink]="[c.id, 'editar']" class="btn">Editar</a>
+
+            <!-- Acciones para usuarios autorizados -->
+            <td
+              *appSiPermiso="'CATALOGO_ESCRIBIR'"
+              class="acciones"
+            >
+
+              <a
+                [routerLink]="[c.id, 'editar']"
+                class="btn"
+              >
+                Editar
+              </a>
+
               <button
                 type="button"
                 class="btn btn-peligro"
@@ -49,16 +87,24 @@
               >
                 Eliminar
               </button>
+
             </td>
           </tr>
+
         } @empty {
+
           <tr>
-            <td colspan="5" class="vacio">
+            <td
+              [attr.colspan]="columnas()"
+              class="vacio"
+            >
               No hay categorías registradas.
             </td>
           </tr>
+
         }
       </tbody>
     </table>
   }
+
 </section>
