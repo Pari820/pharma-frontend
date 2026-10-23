@@ -1,21 +1,37 @@
+
 import { CurrencyPipe } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, computed, inject, OnInit, signal } from '@angular/core';
+import {
+  Component,
+  computed,
+  inject,
+  OnInit,
+  signal
+} from '@angular/core';
 import { RouterLink } from '@angular/router';
 
+import { AuthService } from '../../../../core/auth/auth-service';
 import { PaginaResponse } from '../../../../core/models/pagina-response';
+import { SiPermiso } from '../../../../shared/directives/si-permiso';
+
 import { Categoria } from '../../../categorias/models/categoria.model';
 import { CategoriaService } from '../../../categorias/services/categoria-service';
+
 import {
   Direccion,
   OrdenProducto,
   Producto
 } from '../../models/producto.model';
+
 import { ProductoService } from '../../services/producto-service';
 
 @Component({
   selector: 'app-producto-list',
-  imports: [RouterLink, CurrencyPipe],
+  imports: [
+    RouterLink,
+    CurrencyPipe,
+    SiPermiso
+  ],
   templateUrl: './producto-list.html',
   styleUrl: './producto-list.css'
 })
@@ -23,6 +39,7 @@ export class ProductoList implements OnInit {
 
   private readonly productoService = inject(ProductoService);
   private readonly categoriaService = inject(CategoriaService);
+  private readonly auth = inject(AuthService);
 
   protected readonly pagina = signal(0);
   protected readonly tamanio = signal(10);
@@ -34,17 +51,26 @@ export class ProductoList implements OnInit {
 
   protected readonly categorias = signal<Categoria[]>([]);
   protected readonly categoriaFiltro = signal<number | null>(null);
-
   protected readonly cargando = signal(false);
   protected readonly error = signal<string | null>(null);
 
-  protected readonly productos = computed(() => {
-    const filtro = this.categoriaFiltro();
-    const lista = this.resultado()?.contenido ?? [];
+  // Ajusta las columnas según el permiso del usuario.
+  protected readonly columnas = computed(() =>
+    this.auth.tienePermiso('CATALOGO_ESCRIBIR') ? 6 : 5
+  );
 
-    return filtro === null
-      ? lista
-      : lista.filter(producto => producto.categoriaId === filtro);
+  // Filtra los productos por categoría.
+  protected readonly productos = computed(() => {
+    const lista = this.resultado()?.contenido ?? [];
+    const filtro = this.categoriaFiltro();
+
+    if (filtro === null) {
+      return lista;
+    }
+
+    return lista.filter(
+      producto => producto.categoriaId === filtro
+    );
   });
 
   ngOnInit(): void {
@@ -64,23 +90,21 @@ export class ProductoList implements OnInit {
     this.cargando.set(true);
     this.error.set(null);
 
-    this.productoService
-      .listar(
-        this.pagina(),
-        this.tamanio(),
-        this.ordenarPor(),
-        this.direccion()
-      )
-      .subscribe({
-        next: pagina => {
-          this.resultado.set(pagina);
-          this.cargando.set(false);
-        },
-        error: (err: HttpErrorResponse) => {
-          this.error.set(this.mensajeError(err));
-          this.cargando.set(false);
-        }
-      });
+    this.productoService.listar(
+      this.pagina(),
+      this.tamanio(),
+      this.ordenarPor(),
+      this.direccion()
+    ).subscribe({
+      next: respuesta => {
+        this.resultado.set(respuesta);
+        this.cargando.set(false);
+      },
+      error: (err: HttpErrorResponse) => {
+        this.error.set(this.mensajeError(err));
+        this.cargando.set(false);
+      }
+    });
   }
 
   irA(pagina: number): void {
@@ -99,8 +123,8 @@ export class ProductoList implements OnInit {
 
   ordenar(campo: OrdenProducto): void {
     if (this.ordenarPor() === campo) {
-      this.direccion.update(direccion =>
-        direccion === 'asc' ? 'desc' : 'asc'
+      this.direccion.update(actual =>
+        actual === 'asc' ? 'desc' : 'asc'
       );
     } else {
       this.ordenarPor.set(campo);
@@ -116,12 +140,13 @@ export class ProductoList implements OnInit {
     );
   }
 
+  // Da de baja un producto.
   darDeBaja(producto: Producto): void {
-    const confirmar = confirm(
+    const confirmado = confirm(
       `¿Dar de baja el producto "${producto.nombre}"?`
     );
 
-    if (!confirmar) {
+    if (!confirmado) {
       return;
     }
 
@@ -133,18 +158,15 @@ export class ProductoList implements OnInit {
           return;
         }
 
-        const contenidoActualizado = actual.contenido.map(p =>
+        const contenido = actual.contenido.map(p =>
           p.id === producto.id
-            ? {
-                ...p,
-                estado: false
-              }
+            ? { ...p, estado: false }
             : p
         );
 
         this.resultado.set({
           ...actual,
-          contenido: contenidoActualizado
+          contenido
         });
       },
       error: (err: HttpErrorResponse) => {
