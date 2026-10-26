@@ -1,0 +1,92 @@
+
+<section class="pagina-cuenta">
+  <div class="encabezado">
+    <div>
+      <h1>Mi cuenta</h1>
+      <p>Información de tu cuenta y permisos de PharmaSoft.</p>
+    </div>
+
+    <button type="button" (click)="cargarPerfil()">
+      Actualizar datos
+    </button>
+  </div>
+
+  @if (cargando()) {
+    <div class="mensaje">
+      Cargando información del servidor...
+    </div>
+  } @else if (error()) {
+    <div class="mensaje error" role="alert">
+      {{ error() }}
+      <button type="button" (click)="cargarPerfil()">
+        Reintentar
+      </button>
+    </div>
+  } @else if (perfil(); as p) {
+
+    @if (permisosModificados()) {
+      <div class="advertencia" role="alert">
+        Sus permisos cambiaron. Cierre sesión y vuelva a
+        ingresar para actualizarlos.
+      </div>
+    }
+
+    <div class="tarjeta">
+      <h2>Datos personales</h2>
+
+      <div class="datos">
+        <div>
+          <span class="etiqueta">Nombre completo</span>
+          <strong>{{ p.nombreCompleto }}</strong>
+        </div>
+
+        <div>
+          <span class="etiqueta">Usuario</span>
+          <strong>{{ p.username }}</strong>
+        </div>
+      </div>
+    </div>
+
+    <div class="tarjeta">
+      <h2>Roles asignados</h2>
+
+      <div class="roles">
+        @for (rol of p.roles; track rol) {
+          <span class="rol">{{ rol }}</span>
+        } @empty {
+          <p>No tiene roles asignados.</p>
+        }
+      </div>
+    </div>
+
+    <div class="tarjeta">
+      <h2>Permisos por módulo</h2>
+
+      <div class="modulos">
+        @for (modulo of modulos; track modulo.nombre) {
+          <div class="modulo">
+            <h3>{{ modulo.nombre }}</h3>
+
+            @for (item of modulo.permisos; track item.codigo) {
+              <div class="fila-permiso">
+                <div>
+                  <span class="descripcion">
+                    {{ item.descripcion }}
+                  </span>
+
+                  <small>{{ item.codigo }}</small>
+                </div>
+
+                @if (p.permisos.includes(item.codigo)) {
+                  <span class="permitido">✔ Permitido</span>
+                } @else {
+                  <span class="denegado">✘ Sin acceso</span>
+                }
+              </div>
+            }
+          </div>
+        }
+      </div>
+    </div>
+  }
+</section>
