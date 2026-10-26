@@ -13,6 +13,11 @@ import {
 
 const CLAVE_SESION = 'pharmasoft.sesion';
 
+export type PerfilUsuario = Pick<
+  Sesion,
+  'username' | 'nombreCompleto' | 'roles' | 'permisos'
+>;
+
 @Injectable({
   providedIn: 'root'
 })
@@ -26,12 +31,27 @@ export class AuthService {
   );
 
   private temporizador?: ReturnType<typeof setTimeout>;
+  private intervalo?: ReturnType<typeof setInterval>;
 
   readonly sesion = this.sesionActual.asReadonly();
 
   readonly autenticado = computed(
     () => this.sesionActual() !== null
   );
+
+  // Tiempo restante de sesión en segundos.
+  readonly segundosRestantes = signal(0);
+
+  // El aviso aparece cuando quedan dos minutos o menos.
+  readonly porVencer = computed(
+    () =>
+      this.autenticado() &&
+      this.segundosRestantes() > 0 &&
+      this.segundosRestantes() <= 120
+  );
+
+  // Permite ocultar el aviso durante la sesión actual.
+  readonly avisoOculto = signal(false);
 
   constructor() {
     const sesion = this.sesionActual();
@@ -41,7 +61,6 @@ export class AuthService {
     }
   }
 
-  /** Inicia sesión utilizando el backend. */
   login(credenciales: LoginRequest): Observable<Sesion> {
     return this.http
       .post<LoginResponse>(`${this.url}/login`, credenciales)
@@ -58,16 +77,24 @@ export class AuthService {
       );
   }
 
-  /** Cierra la sesión y vuelve al login. */
+  // Obtiene el perfil real desde PharmaBackend.
+  obtenerPerfil(): Observable<PerfilUsuario> {
+    return this.http.get<PerfilUsuario>(
+      `${this.url}/me`
+    );
+  }
+
   cerrarSesion(
     motivo?: 'expirada',
     volverA?: string
   ): void {
-    clearTimeout(this.temporizador);
+    this.limpiarTemporizadores();
 
     sessionStorage.removeItem(CLAVE_SESION);
 
     this.sesionActual.set(null);
+    this.segundosRestantes.set(0);
+    this.avisoOculto.set(false);
 
     const queryParams: Record<string, string> = {};
 
@@ -84,7 +111,6 @@ export class AuthService {
     });
   }
 
-  /** Devuelve el token si todavía está vigente. */
   token(): string | null {
     const sesion = this.sesionActual();
 
@@ -93,13 +119,16 @@ export class AuthService {
       : null;
   }
 
-  /** Comprueba si el usuario tiene un permiso. */
   tienePermiso(permiso: Permiso): boolean {
     return this.sesionActual()
       ?.permisos.includes(permiso) ?? false;
   }
 
-  /** Guarda la sesión en memoria y en el navegador. */
+  // Oculta el aviso hasta el siguiente inicio de sesión.
+  ocultarAviso(): void {
+    this.avisoOculto.set(true);
+  }
+
   private iniciar(sesion: Sesion): void {
     sessionStorage.setItem(
       CLAVE_SESION,
@@ -107,26 +136,56 @@ export class AuthService {
     );
 
     this.sesionActual.set(sesion);
+    this.avisoOculto.set(false);
 
     this.programarExpiracion(sesion);
   }
 
-  /** Programa el cierre automático de la sesión. */
-  private programarExpiracion(sesion: Sesion): void {
-    clearTimeout(this.temporizador);
-
-    const restante = sesion.expiraEn - Date.now();
-
-    this.temporizador = setTimeout(
-      () => this.cerrarSesion(
-        'expirada',
-        this.router.url
-      ),
-      Math.max(restante, 0)
+  private actualizarSegundos(sesion: Sesion): void {
+    const segundos = Math.max(
+      0,
+      Math.floor((sesion.expiraEn - Date.now()) / 1000)
     );
+
+    this.segundosRestantes.set(segundos);
   }
 
-  /** Recupera la sesión después de actualizar la página. */
+  private programarExpiracion(sesion: Sesion): void {
+    this.limpiarTemporizadores();
+
+    const restante = Math.max(
+      sesion.expiraEn - Date.now(),
+      0
+    );
+
+    this.actualizarSegundos(sesion);
+
+    // Actualiza la cuenta regresiva cada segundo.
+    this.intervalo = setInterval(() => {
+      this.actualizarSegundos(sesion);
+    }, 1000);
+
+    // Conserva el cierre automático de sesión.
+    this.temporizador = setTimeout(() => {
+      this.cerrarSesion(
+        'expirada',
+        this.router.url
+      );
+    }, restante);
+  }
+
+  private limpiarTemporizadores(): void {
+    if (this.temporizador !== undefined) {
+      clearTimeout(this.temporizador);
+      this.temporizador = undefined;
+    }
+
+    if (this.intervalo !== undefined) {
+      clearInterval(this.intervalo);
+      this.intervalo = undefined;
+    }
+  }
+
   private leerSesionGuardada(): Sesion | null {
     try {
       const texto = sessionStorage.getItem(CLAVE_SESION);
@@ -147,7 +206,6 @@ export class AuthService {
       }
 
       return sesion;
-
     } catch {
       sessionStorage.removeItem(CLAVE_SESION);
       return null;
