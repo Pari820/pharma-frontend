@@ -79,10 +79,20 @@ export class AuthService {
 
   // Obtiene el perfil real desde PharmaBackend.
   obtenerPerfil(): Observable<PerfilUsuario> {
-    return this.http.get<PerfilUsuario>(
+  return this.http
+    .get<PerfilUsuario & { empleadoNombre?: string }>(
       `${this.url}/me`
+    )
+    .pipe(
+      map(perfil => ({
+        ...perfil,
+        nombreCompleto:
+          perfil.nombreCompleto ||
+          perfil.empleadoNombre ||
+          ''
+      }))
     );
-  }
+}
 
   cerrarSesion(
     motivo?: 'expirada',
