@@ -1,8 +1,6 @@
 
 import { Routes } from '@angular/router';
 
-import { MainLayout } from './layout/main-layout/main-layout';
-
 import {
   authGuard,
   invitadoGuard
@@ -25,7 +23,10 @@ export const routes: Routes = [
   // RUTAS PROTEGIDAS
   {
     path: '',
-    component: MainLayout,
+    loadComponent: () =>
+      import('./layout/main-layout/main-layout')
+        .then(m => m.MainLayout),
+
     canActivate: [authGuard],
     canActivateChild: [authGuard],
 
@@ -138,3 +139,4 @@ export const routes: Routes = [
   }
 
 ];
+
