@@ -1,4 +1,3 @@
-
 import {
   ApplicationConfig,
   provideBrowserGlobalErrorListeners
@@ -6,7 +5,9 @@ import {
 
 import {
   provideRouter,
-  withComponentInputBinding
+  withComponentInputBinding,
+  withPreloading,
+  PreloadAllModules
 } from '@angular/router';
 
 import {
@@ -25,11 +26,10 @@ export const appConfig: ApplicationConfig = {
 
     provideRouter(
       routes,
-      withComponentInputBinding()
+      withComponentInputBinding(),
+      withPreloading(PreloadAllModules)
     ),
 
-    // Primero agrega el token JWT.
-    // Después controla los errores 401 y 403.
     provideHttpClient(
       withInterceptors([
         authInterceptor,
