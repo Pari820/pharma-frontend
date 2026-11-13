@@ -1,0 +1,129 @@
+<section class="reporte">
+
+  <div class="encabezado">
+    <div>
+      <h1>Reporte de ventas por categoría</h1>
+      <p>
+        Consulta las categorías con mayor cantidad y monto de ventas.
+      </p>
+    </div>
+  </div>
+
+  <div class="panel-filtros">
+    <div class="campo">
+      <label for="desde">Desde</label>
+      <input
+        id="desde"
+        type="date"
+        [(ngModel)]="desde"
+      />
+    </div>
+
+    <div class="campo">
+      <label for="hasta">Hasta</label>
+      <input
+        id="hasta"
+        type="date"
+        [(ngModel)]="hasta"
+      />
+    </div>
+
+    <div class="acciones">
+      <button
+        type="button"
+        class="btn btn-secundario"
+        (click)="limpiar()"
+      >
+        Limpiar
+      </button>
+
+      <button
+        type="button"
+        class="btn btn-principal"
+        (click)="generar()"
+        [disabled]="cargando()"
+      >
+        Generar
+      </button>
+    </div>
+  </div>
+
+  @if (cargando()) {
+    <div class="estado">
+      Cargando reporte...
+    </div>
+  }
+
+  @if (error()) {
+    <div class="mensaje-error">
+      {{ error() }}
+    </div>
+  }
+
+  @if (!cargando() && !error() && datos().length === 0) {
+    <div class="estado">
+      No hay ventas en el periodo seleccionado.
+    </div>
+  }
+
+  @if (!cargando() && !error() && datos().length > 0) {
+
+    <div class="tabla-contenedor">
+      <table>
+        <thead>
+          <tr>
+            <th>Categoría</th>
+            <th>Unidades vendidas</th>
+            <th>Monto</th>
+            <th>Comparación</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          @for (item of datos(); track item.categoriaId) {
+            <tr>
+              <td>
+                {{ item.categoriaNombre }}
+              </td>
+
+              <td class="numero">
+                {{ item.cantidadVendida }}
+              </td>
+
+              <td class="numero">
+                {{ item.montoTotal | currency:'PEN':'symbol':'1.2-2' }}
+              </td>
+
+              <td>
+                <div class="barra-fondo">
+                  <div
+                    class="barra"
+                    [style.width.%]="porcentaje(item.montoTotal)"
+                  ></div>
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+
+        <tfoot>
+          <tr>
+            <th>Total</th>
+
+            <th class="numero">
+              {{ totalUnidades() }}
+            </th>
+
+            <th class="numero">
+              {{ montoGeneral() | currency:'PEN':'symbol':'1.2-2' }}
+            </th>
+
+            <th></th>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+
+  }
+
+</section>

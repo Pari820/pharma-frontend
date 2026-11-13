@@ -1,0 +1,25 @@
+﻿.nav-paginador {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 15px;
+}
+
+.nav-paginador span:first-child {
+  margin-right: auto;
+}
+
+.nav-paginador button,
+.nav-paginador select {
+  padding: 7px 10px;
+  border: 1px solid #cbd5e1;
+  border-radius: 5px;
+  background: white;
+  color: #1e293b;
+}
+
+.nav-paginador button:disabled {
+  opacity: .45;
+  cursor: not-allowed;
+}
