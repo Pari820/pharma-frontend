@@ -1,4 +1,4 @@
-
+﻿
 import {
   Component,
   computed,
@@ -13,11 +13,12 @@ import {
   NonNullableFormBuilder,
   ReactiveFormsModule
 } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 
 import { PaginaResponse } from '../../../../core/models/pagina-response';
 import { mensajeError } from '../../../../core/utils/http-error';
 import { SiPermiso } from '../../../../shared/directives/si-permiso';
+import { Paginador } from '../../../../shared/components/paginador/paginador';
 
 import { Cliente } from '../../../clientes/models/cliente.model';
 import { ClienteService } from '../../../clientes/services/cliente-service';
@@ -37,7 +38,8 @@ import { VentaService } from '../../services/venta-service';
     RouterLink,
     CurrencyPipe,
     DatePipe,
-    SiPermiso
+    SiPermiso,
+    Paginador
   ],
   templateUrl: './venta-list.html',
   styleUrl: './venta-list.css'
@@ -47,10 +49,13 @@ export class VentaList implements OnInit {
   private readonly fb = inject(NonNullableFormBuilder);
   private readonly ventaService = inject(VentaService);
   private readonly clienteService = inject(ClienteService);
+  private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
 
   protected readonly clientes = signal<Cliente[]>([]);
   protected readonly resultado = signal<PaginaResponse<Venta> | null>(null);
   protected readonly pagina = signal(0);
+  protected readonly tamanio = signal(10);
   protected readonly cargando = signal(false);
   protected readonly error = signal<string | null>(null);
 
@@ -105,7 +110,14 @@ export class VentaList implements OnInit {
         this.error.set(mensajeError(err))
     });
 
-    this.cargar();
+    this.route.queryParamMap.subscribe(params => {
+      const p = Number(params.get('pagina') ?? 0);
+      const t = Number(params.get('tamanio') ?? 10);
+
+      this.pagina.set(Number.isInteger(p) && p >= 0 ? p : 0);
+      this.tamanio.set([10, 20, 50].includes(t) ? t : 10);
+      this.cargar();
+    });
   }
 
   // Busca ventas con los filtros seleccionados.
@@ -120,7 +132,11 @@ export class VentaList implements OnInit {
     }
 
     this.pagina.set(0);
-    this.cargar();
+    void this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: { pagina: 0 },
+      queryParamsHandling: 'merge'
+    }).then(() => this.cargar());
   }
 
   // Limpia los filtros.
@@ -131,8 +147,25 @@ export class VentaList implements OnInit {
 
   // Cambia de página.
   irA(pagina: number): void {
-    this.pagina.set(pagina);
-    this.cargar();
+    if (pagina < 0 || pagina >= (this.resultado()?.totalPaginas ?? 0)) {
+      return;
+    }
+
+    void this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: { pagina },
+      queryParamsHandling: 'merge'
+    });
+  }
+
+  cambiarTamanio(tamanio: number): void {
+    if (![10, 20, 50].includes(tamanio)) return;
+
+    void this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: { pagina: 0, tamanio },
+      queryParamsHandling: 'merge'
+    });
   }
 
   // Consulta las ventas desde el backend.
@@ -145,7 +178,7 @@ export class VentaList implements OnInit {
     this.ventaService.buscar(
       filtro,
       this.pagina(),
-      10
+      this.tamanio()
     ).subscribe({
       next: r => {
         this.resultado.set(r);
@@ -159,3 +192,4 @@ export class VentaList implements OnInit {
     });
   }
 }
+
